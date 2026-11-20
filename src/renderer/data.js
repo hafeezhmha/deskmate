@@ -80,6 +80,9 @@ export const SHOP = [
 
   { id: 'wall-cream', kind: 'wallpaper', name: 'Cream', price: 0, colors: { wall: '#ead6b8', stripe: '#e2cba9', floor: '#b9835a', floorDark: '#a3714b', curtain: '#e0734f' } },
   { id: 'wall-sage', kind: 'wallpaper', name: 'Sage', price: 70, colors: { wall: '#c9d8bf', stripe: '#bccdb0', floor: '#a7774f', floorDark: '#916442', curtain: '#f2efe6' } },
+  // Mail-only: never in the shop, only arrive in letters.
+  { id: 'outfit-golden', kind: 'outfit', name: 'Golden beanie', price: 0, mailOnly: true, desc: 'from the beanie club.', colors: { hat: '#f2c94c', hatDark: '#c99a22', top: '#3a3550', topDark: '#2b2640' } },
+  { id: 'wall-sunset', kind: 'wallpaper', name: 'Sunset', price: 0, mailOnly: true, desc: 'a gift from a fan.', colors: { wall: '#f3c9a8', stripe: '#eebd98', floor: '#a86a4a', floorDark: '#935a3d', curtain: '#9b7fe6' } },
   { id: 'wall-nightowl', kind: 'wallpaper', name: 'Night owl', price: 120, colors: { wall: '#3d4268', stripe: '#373c5f', floor: '#6b4a3a', floorDark: '#5a3d30', curtain: '#9b7fe6' } },
 ]
 
@@ -140,9 +143,147 @@ export const LINES = {
   distractYou: ['ooh, what are we watching?', 'if you scroll, I scroll.', 'I saw that.'],
   unsorted: ['where are we? (sort it in Today)', 'new place! is this work?'],
   goal: ['goal done!', 'tick!', 'look at us, being consistent.'],
+  mail: ['mail!', 'ooh, a letter!', 'fan mail? fan mail.'],
   newWeek: ['new week. new goals.', "monday. let's do this. probably."],
   perfectWeek: ['ALL GOALS. TROPHY.', 'perfect week. framing this.'],
 }
+
+// Mail. One letter arrives every time a project ships (sometimes two).
+// You don't know what's in it until you finish something.
+//
+// Each template gets the shipped project and a few helpers, and returns
+// { from, subject, body, gift }. `gift` is optional:
+//   { type: 'coins', amount } | { type: 'energy', amount } | { type: 'item', id }
+// `when` decides if it can be picked right now; `weight` is how often.
+// Later: code reviews arrive here too ("a user opened an issue: what does this do?").
+const STARS = { 1: [1, 6], 2: [12, 90], 3: [200, 900], 4: [2000, 9000] }
+
+export const MAIL = [
+  {
+    id: 'mom',
+    weight: 2,
+    make: ({ project }) => ({
+      from: 'mom',
+      subject: 'saw your thing',
+      body: `saw your ${project.name.toLowerCase()}. very nice. your cousin is a doctor now. are you eating?`,
+      gift: { type: 'energy', amount: 25, label: 'homemade food' },
+    }),
+  },
+  {
+    id: 'stars',
+    weight: 4,
+    make: ({ project, randInt }) => {
+      const n = randInt(...STARS[project.tier])
+      return {
+        from: 'github',
+        subject: `${n.toLocaleString()} new ${n === 1 ? 'star' : 'stars'}`,
+        body: `${n === 1 ? 'someone' : `${n.toLocaleString()} people`} starred ${project.name.toLowerCase()}. at least one of them is probably not a bot.`,
+        gift: { type: 'coins', amount: Math.round(project.pay * 0.15) + 5 },
+      }
+    },
+  },
+  {
+    id: 'fan',
+    weight: 3,
+    make: ({ project, pick }) => ({
+      from: pick(['a happy user', 'someone on the internet', 'a guy named dave']),
+      subject: 'thank you!!',
+      body: pick([
+        `I've used ${project.name.toLowerCase()} every day this week. it changed my life. well, my tuesdays.`,
+        `${project.name.toLowerCase()} is exactly what I needed. please never stop. also please add dark mode.`,
+        `showed ${project.name.toLowerCase()} to my team. they said "neat". that's huge for them.`,
+      ]),
+      gift: { type: 'coins', amount: Math.round(project.pay * 0.1) + 5 },
+    }),
+  },
+  {
+    id: 'bug',
+    weight: 3,
+    react: "it's a feature.",
+    make: ({ project, pick, randInt }) => ({
+      from: 'issue tracker',
+      subject: `issue #${randInt(2, 480)}: it broke`,
+      body: pick([
+        `${project.name.toLowerCase()} crashes when I click the button twice. I clicked it twice.`,
+        'works on your machine. does not work on mine. please send me your machine.',
+        `${project.name.toLowerCase()} deleted my homework. please advise.`,
+        'not a bug report, just wanted to say the loading spinner is very relaxing.',
+      ]),
+    }),
+  },
+  {
+    id: 'recruiter',
+    weight: 2,
+    react: 'exposure! finally.',
+    make: ({ project }) => ({
+      from: 'a recruiter',
+      subject: 'exciting opportunity!!',
+      body: `loved your ${project.name.toLowerCase()}! we're hiring a rockstar ninja 10x wizard. pay is exposure. start yesterday.`,
+    }),
+  },
+  {
+    id: 'newsletter',
+    weight: 2,
+    make: ({ pick, randInt }) => ({
+      from: 'this week in code',
+      subject: `issue #${randInt(80, 400)}`,
+      body: pick([
+        'everyone is rewriting things in rust again. nobody knows why. study continues.',
+        'a new javascript framework came out. the old one was 3 weeks old.',
+        'study finds devs who take breaks write fewer bugs. more at 11. (take a break.)',
+        'reminder: reading the docs is faster than guessing. we checked.',
+      ]),
+    }),
+  },
+  {
+    id: 'gift',
+    weight: 2,
+    when: ({ unownedFurniture }) => unownedFurniture.length > 0,
+    make: ({ project, unownedFurniture }) => {
+      // Cheapest thing you don't have yet.
+      const item = unownedFurniture[0]
+      return {
+        from: 'a fan',
+        subject: 'a little something',
+        body: `saw ${project.name.toLowerCase()}, sent you this. no strings attached. ok, one string: add dark mode.`,
+        gift: { type: 'item', id: item.id },
+      }
+    },
+  },
+  {
+    id: 'hackathon',
+    weight: 1,
+    when: ({ project }) => project.tier >= 2,
+    make: ({ project, pick }) => ({
+      from: 'hackathon judges',
+      subject: 'you placed!',
+      body: `${project.name.toLowerCase()} got ${pick(['3rd place', '2nd place', 'an honourable mention'])}. the prize is mostly pizza, but also this.`,
+      gift: { type: 'coins', amount: Math.round(project.pay * 0.5) },
+    }),
+  },
+  {
+    id: 'beanie',
+    weight: 0.6,
+    when: ({ owns }) => !owns('outfit-golden'),
+    make: () => ({
+      from: 'the beanie club',
+      subject: 'welcome, member',
+      body: 'your hat game has been noticed by the committee. please accept this. do not ask about the committee.',
+      gift: { type: 'item', id: 'outfit-golden' },
+    }),
+  },
+  {
+    id: 'sunset',
+    weight: 0.6,
+    when: ({ owns }) => !owns('wall-sunset'),
+    make: () => ({
+      from: 'interior design weekly',
+      subject: 'your room, but warmer',
+      body: 'we saw your room in the background of a stream. we fixed it. you are welcome.',
+      gift: { type: 'item', id: 'wall-sunset' },
+    }),
+  },
+]
 
 export function windowLine(hour) {
   if (hour >= 21 || hour < 5) return 'the stars are out.'

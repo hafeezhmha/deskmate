@@ -22,6 +22,7 @@ import {
   STARTER_OWNED,
   SPOTS,
   LINES,
+  MAIL,
   windowLine,
 } from './data.js'
 import { ROOM_W, ROOM_H, WALK_Y, CHAIR, COUCH, drawRoom, drawLighting, drawZaif, drawParticles } from './art.js'
@@ -57,6 +58,8 @@ function freshSave() {
     knowledgeMinutes: 0, // time spent actively learning, ever
     goals: {}, // monday 'YYYY-MM-DD' -> { claimed: [goal ids], perfect }
     trophies: 0, // perfect weeks
+    mail: [], // letters, newest first: { id, kind, from, subject, body, gift, at, read, claimed }
+    mailSeq: 0,
     lastWeek: null, // the week Zaif last saw, to notice a new one
     rules: [], // your own category rules, made by sorting the unsorted list
     unsorted: {}, // windows no rule matched: key -> { app, site, label, seconds }
@@ -97,6 +100,8 @@ const rt = {
   bubble: null, // { text, until, onClick }
   timers: {}, // last time each kind of message fired, for rate limiting
   hourOverride: null,
+  later: [], // things scheduled for a moment from now: { at, fn }
+  coinsShown: 0, // the panel counts up to save.coins instead of jumping
   fakeTyping: false,
   fakeReading: false,
 }
@@ -130,6 +135,10 @@ function every(name, ms) {
 function say(text, { ms = 3800, onClick = null } = {}) {
   if (Array.isArray(text)) text = pick(text)
   rt.bubble = { text, until: rt.now + ms, onClick }
+}
+
+function schedule(ms, fn) {
+  rt.later.push({ at: rt.now + ms, fn })
 }
 
 function particle(p) {
@@ -290,8 +299,53 @@ function ship(project) {
       color: pick(['#f2b134', '#ff8fa3', '#7fd1ff', '#8be28b', '#c59bff']),
     })
   }
+  sendMail(project)
   persist()
 }
+
+// ------------------------------------------------------------------ mail
+
+// Pick a letter for a shipped project. Bigger projects get better mail.
+function writeLetter(project) {
+  const have = owned()
+  const ctx = {
+    project,
+    pick,
+    randInt: (a, b) => Math.floor(rand(a, b + 1)),
+    owns: (id) => have.has(id),
+    unownedFurniture: SHOP.filter((i) => i.kind === 'furniture' && !have.has(i.id)).sort((a, b) => a.price - b.price),
+  }
+  // The very first ship always gets a letter from mom.
+  const firstEver = Object.values(save.shipped).reduce((a, b) => a + b, 0) === 1
+  const options = firstEver ? MAIL.filter((m) => m.id === 'mom') : MAIL.filter((m) => !m.when || m.when(ctx))
+  let roll = Math.random() * options.reduce((sum, m) => sum + m.weight, 0)
+  const template = options.find((m) => (roll -= m.weight) < 0) || options[0]
+  return { kind: template.id, ...template.make(ctx) }
+}
+
+// One letter per ship, sometimes two. It flies in a moment after the
+// confetti, as a paper plane through the window.
+function sendMail(project) {
+  const count = Math.random() < 0.25 ? 2 : 1
+  const arrivesAt = Date.now() + 2600 // hidden until the plane lands
+  for (let i = 0; i < count; i++) {
+    save.mail.unshift({ ...writeLetter(project), id: ++save.mailSeq, at: arrivesAt, read: false, claimed: false })
+  }
+  // Keep 40 letters; drop the oldest ones that are read and have nothing left to take.
+  while (save.mail.length > 40) {
+    const i = save.mail.findLastIndex((l) => l.read && (!l.gift || l.claimed))
+    save.mail.splice(i >= 0 ? i : save.mail.length - 1, 1)
+  }
+  schedule(1000, () => particle({ kind: 'plane', x: 66, y: 24, vx: 70, vy: 23, gravity: 20, life: 1.6 }))
+  schedule(2700, () => {
+    sfx.pop()
+    say(count === 2 ? 'two letters!' : LINES.mail, { ms: 9000, onClick: () => ui.open('mail') })
+    ui.pulse('mail')
+  })
+}
+
+const arrivedMail = () => save.mail.filter((l) => l.at <= Date.now())
+const unreadMail = () => arrivedMail().filter((l) => !l.read).length
 
 // ------------------------------------------------------------------ breaks
 
@@ -607,6 +661,10 @@ function update(dt) {
 
   trackTime(dt)
   if (every('goals', 5 * SECOND)) checkGoals()
+  for (const job of rt.later.filter((j) => rt.now >= j.at)) job.fn()
+  rt.later = rt.later.filter((j) => rt.now < j.at)
+  rt.coinsShown += (save.coins - rt.coinsShown) * Math.min(1, dt * 3)
+  if (Math.abs(save.coins - rt.coinsShown) < 0.5) rt.coinsShown = save.coins
   if (rt.fakeTyping && Math.random() < 0.35) onInput({ keys: 1 })
   if (rt.fakeReading && Math.random() < 0.3) onInput({ pointer: 4 })
 }
@@ -629,6 +687,7 @@ function draw() {
     arcadeOn: rt.arcadeOn,
     monitor: monitorMode(monitorOn),
     trophies: save.trophies,
+    unreadMail: unreadMail(),
     codeLine: rt.codeLine,
     docLine: rt.docLine,
     typedInLine: rt.typedInLine,
@@ -682,6 +741,11 @@ canvas.addEventListener('click', (event) => {
   const scale = save.settings.scale
   const x = event.offsetX / scale
   const y = event.offsetY / scale
+  // The letters on the desk open the inbox.
+  if (unreadMail() && x >= 173 && x <= 184 && y >= 86 && y <= 95) {
+    ui.open('mail')
+    return
+  }
   if (Math.abs(x - zaif.x) < 8 && y > zaif.y - 24 && y < zaif.y + 4) {
     particle({ kind: 'heart', x: zaif.x - 2, y: zaif.y - 26, vy: -8, life: 1.2 })
     sfx.pop()
@@ -743,6 +807,31 @@ const actions = {
     onWindow(rt.win) // re-check the window you're in now
     persist()
   },
+  openLetter(id) {
+    const letter = save.mail.find((l) => l.id === id)
+    if (!letter || letter.read) return
+    letter.read = true
+    const react = MAIL.find((m) => m.id === letter.kind)?.react
+    if (react) say(react)
+    persist()
+  },
+  claimGift(id) {
+    const letter = save.mail.find((l) => l.id === id)
+    if (!letter?.gift || letter.claimed) return
+    const gift = letter.gift
+    if (gift.type === 'coins') save.coins += gift.amount
+    if (gift.type === 'energy') save.energy = Math.min(100, save.energy + gift.amount)
+    if (gift.type === 'item' && !save.owned.includes(gift.id)) {
+      const thing = item(gift.id)
+      save.owned.push(gift.id)
+      if (thing.kind === 'outfit') save.outfit = gift.id
+      if (thing.kind === 'wallpaper') save.wallpaper = gift.id
+      say(thing.kind === 'furniture' ? `a ${thing.name.toLowerCase()}! for me?` : 'ooh. fancy.')
+    }
+    letter.claimed = true
+    sfx.buy()
+    persist()
+  },
   startBreak,
   endBreak,
   setScale(scale) {
@@ -774,7 +863,17 @@ const actions = {
 const ui = createUI({
   state: () => {
     const weekKey = weekKeyFor(new Date())
-    return { save, rt, knowledgeLevel: knowledgeLevel(), payFor, weekKey, week: weekSummary(weekKey), lastWeekKey: weekKeyFor(Date.now() - 7 * 86400000) }
+    return {
+      save,
+      rt,
+      knowledgeLevel: knowledgeLevel(),
+      payFor,
+      weekKey,
+      week: weekSummary(weekKey),
+      lastWeekKey: weekKeyFor(Date.now() - 7 * 86400000),
+      mail: arrivedMail(),
+      unread: unreadMail(),
+    }
   },
   actions,
 })
@@ -798,6 +897,17 @@ function debugScene(scene) {
     else if (part === 'doomscroll') Object.assign(rt, { category: 'distract' })
     else if (part === 'week') fakeWeek()
     else if (part === 'trophies') save.trophies = 3
+    else if (part === 'mail') {
+      // One of every kind of letter, already arrived.
+      const have = owned()
+      const ctx = { project: PROJECTS[9], pick, randInt: (a, b) => a, owns: (id) => have.has(id), unownedFurniture: SHOP.filter((i) => i.kind === 'furniture' && !have.has(i.id)) }
+      for (const m of MAIL) save.mail.unshift({ kind: m.id, ...m.make(ctx), id: ++save.mailSeq, at: 0, read: false, claimed: false })
+      save.mail[3].read = true
+    } else if (part === 'ship') {
+      save.project = 'weather'
+      schedule(300, () => ship(currentProject()))
+    } else if (part === 'letter') schedule(100, () => ui.openLetter(save.mail[0].id))
+    else if (part === 'claim') schedule(400, () => actions.claimGift(save.mail[0].id))
     else if (part === 'perfect') {
       fakeWeek()
       today().time.learn = 6 * 3600 // enough to finish every goal
@@ -851,6 +961,7 @@ async function start() {
     save = { ...base, ...loaded.save, settings: { ...base.settings, ...loaded.save.settings } }
   }
   rt.keySource = loaded.keySource
+  rt.coinsShown = save.coins
   setSound(save.settings.sound)
   applyLayout()
   today()

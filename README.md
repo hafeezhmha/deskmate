@@ -60,6 +60,14 @@ You need Linux on X11 and `xinput`. On Wayland it still runs, but it can only co
 - Spend the coins on upgrades (type faster, unlock bigger projects) or stuff for the room.
 - Energy drops while you type. Under 35% he asks for a break (click the yellow bubble). At 0 he writes at half speed, same as me.
 
+### mail
+
+Ship a project and a few seconds later a paper plane flies in through the window with a letter. You don't know what's in it until you finish something, which is the whole point.
+
+Could be fan mail, GitHub stars, a bug report, a recruiter offering exposure, the newsletter, your mom asking if you're eating, a hackathon prize, or a box with furniture in it. Two things in the game only ever come by mail. Bigger projects get better mail.
+
+Open it with the envelope next to your coins, or click the letters on Zaif's desk. Gifts sit in the letter until you hit "take it".
+
 ### week goals
 
 Five goals, reset every monday. They tick themselves, you just do the work:
@@ -135,11 +143,11 @@ I got tired of launching the app to check a sprite, so there's a snapshot mode:
 DESKMATE_DATA_DIR=/tmp/deskmate-test npx electron . --snapshot=out.png --scene=work+all+night
 ```
 
-Join scene parts with `+`: `work` `ai` `reading` `doomscroll` `phone` `asleep` `tired` `tap` `nag` `cheer` `project` `rich` `all` `week` (fake history) `trophies` `perfect` (finishes the week's goals) `day` `dusk` `night` `rest-<spot>` (like `rest-couch`) `sheet-<name>` (like `sheet-goals`) `scrolldown` `outfit-<id>` `wall-<id>`. `--crop=x,y,w,h` zooms in. `DESKMATE_DATA_DIR` keeps it away from your real save.
+Join scene parts with `+`: `work` `ai` `reading` `doomscroll` `phone` `asleep` `tired` `tap` `nag` `cheer` `project` `rich` `all` `week` (fake history) `trophies` `perfect` (finishes the week's goals) `mail` (one of every letter) `ship` `letter` `claim` `day` `dusk` `night` `rest-<spot>` (like `rest-couch`) `sheet-<name>` (like `sheet-goals`) `scrolldown` `outfit-<id>` `wall-<id>`. `--crop=x,y,w,h` zooms in. `DESKMATE_DATA_DIR` keeps it away from your real save.
 
 ## next
 
-- **code reviews.** Claude Code hooks log every edit the AI makes. Diffs I haven't looked at pile up. I click Zaif, he shows me one, I explain what it does, `claude -p` grades me, and that's the only way to raise his Quality stat.
+- **code reviews, by mail.** Hooks log every edit the AI agent makes. Some of them come back as letters ("a user opened an issue: what does this function do?") with the real diff attached. I explain it, an LLM grades me, and that's the only way to raise Zaif's Quality stat.
 - **git credit.** Extra coins for commits I wrote myself (commits minus whatever Claude wrote).
 - **quizzes on stuff I read.** Learning time is a proxy. A two-question check on a docs page I spent 20 minutes on would be the real thing.
 

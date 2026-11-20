@@ -308,6 +308,9 @@ function drawDesk(ctx, view) {
   rect(ctx, 162, 91, 10, 1, '#e9e2d6')
   // Mug
   box(ctx, 202, 88, 4, 5, '#f2efe6')
+  // Unread letters, lying in front of the monitor.
+  if (view.unreadMail > 1) drawEnvelope(ctx, 174, 88)
+  if (view.unreadMail > 0) drawEnvelope(ctx, 176, 89)
   if (view.owned.has('duck')) {
     rect(ctx, 194, 89, 6, 4, INK)
     rect(ctx, 195, 89, 4, 3, '#f2d14b')
@@ -316,6 +319,15 @@ function drawDesk(ctx, view) {
     rect(ctx, 201, 88, 1, 1, '#f08a2c')
     rect(ctx, 199, 87, 1, 1, INK)
   }
+}
+
+function drawEnvelope(ctx, x, y) {
+  box(ctx, x, y, 8, 5, '#fffaf0')
+  rect(ctx, x + 1, y + 1, 1, 1, INK)
+  rect(ctx, x + 2, y + 2, 1, 1, INK)
+  rect(ctx, x + 3, y + 2, 2, 1, '#d94b4b') // wax seal
+  rect(ctx, x + 5, y + 2, 1, 1, INK)
+  rect(ctx, x + 6, y + 1, 1, 1, INK)
 }
 
 function drawScreen(ctx, view) {
@@ -654,6 +666,7 @@ export function drawZaif(ctx, g) {
 const Z = ['####', '..#.', '.#..', '####']
 const NOTE = ['.##', '.#.', '.#.', '##.', '##.']
 const HEART = ['##.##', '#####', '.###.', '..#..']
+const PLANE = ['##.....', '.####..', '..#####', '.##....']
 
 export function drawParticles(ctx, particles) {
   for (const p of particles) {
@@ -662,6 +675,10 @@ export function drawParticles(ctx, particles) {
     if (p.kind === 'z') glyph(ctx, Z, x, y, '#f6efe2')
     else if (p.kind === 'note') glyph(ctx, NOTE, x, y, p.color)
     else if (p.kind === 'heart') glyph(ctx, HEART, x, y, '#ff8fa3')
+    else if (p.kind === 'plane') {
+      glyph(ctx, PLANE, x, y + 1, INK)
+      glyph(ctx, PLANE, x, y, '#ffffff')
+    }
     else rect(ctx, x, y, p.size || 1, p.size || 1, p.color)
   }
 }

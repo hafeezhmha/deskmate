@@ -410,6 +410,82 @@ body.no-panel #panel {
   background-color: var(--gold);
 }
 
+.mail-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 2px;
+  background: var(--accent);
+  color: #fffaf0;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 11px;
+  text-align: center;
+}
+.badge[hidden] {
+  display: none;
+}
+.icon.pulse {
+  animation: pulse 0.8s steps(2) 5;
+}
+
+.letter {
+  cursor: pointer;
+}
+.letter:hover {
+  background: var(--paper-3);
+}
+.letter .new {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border: 2px solid var(--ink);
+}
+.letter.read .new {
+  visibility: hidden;
+}
+.letter.read b {
+  color: var(--muted);
+}
+.gift-tag {
+  flex: none;
+  font-size: 10px;
+  padding: 1px 4px 2px;
+  background: var(--gold);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+}
+.paper {
+  margin: 6px 0;
+  padding: 8px 10px 10px;
+  background: #fffaf0;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  /* ruled lines, like a real letter */
+  background-image: repeating-linear-gradient(transparent 0 17px, #eadfc8 17px 18px);
+  background-position: 0 6px;
+}
+.paper b {
+  display: block;
+  font-size: 14px;
+  margin: 2px 0 6px;
+}
+.paper p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+
 #footer-note {
   color: var(--accent);
 }

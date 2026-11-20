@@ -43,13 +43,17 @@ function knowledgeRow(save) {
 export function createUI({ state, actions }) {
   let sheet = null // which sheet is open, or null
   let shopTab = 'furniture'
+  let letterId = null // which letter is open in the mail sheet
   let lastSheetHtml = ''
 
   // ---------------------------------------------------------- panel
 
   function renderPanel() {
     const { save, rt, payFor, weekKey } = state()
-    $('coins').textContent = Math.floor(save.coins).toLocaleString()
+    $('coins').textContent = Math.floor(rt.coinsShown).toLocaleString()
+    const { unread } = state()
+    $('mail-badge').hidden = unread === 0
+    $('mail-badge').textContent = unread > 9 ? '9+' : String(unread)
 
     const project = PROJECTS.find((p) => p.id === save.project)
     if (project) {
@@ -138,6 +142,37 @@ export function createUI({ state, actions }) {
           `<div class="item locked"><div><b>Quality</b>
             <span class="small">comes with code reviews (v2): Zaif only gets better code when you understand yours.</span></div></div>`
         )
+      },
+    },
+
+    mail: {
+      title: 'Mail',
+      html: ({ mail }) => {
+        const giftLabel = (gift) => {
+          if (gift.type === 'coins') return coin(gift.amount)
+          if (gift.type === 'energy') return `${escapeHtml(gift.label || 'snacks')} (+${gift.amount} energy)`
+          const thing = SHOP.find((i) => i.id === gift.id)
+          return `${escapeHtml(thing.name)} <span class="small">(${thing.kind})</span>`
+        }
+        const letter = mail.find((l) => l.id === letterId)
+        if (letter) {
+          const gift = letter.gift
+            ? `<div class="item"><div><b>inside</b><span class="small">${giftLabel(letter.gift)}</span></div>${
+                letter.claimed ? '<button class="btn" disabled>taken</button>' : `<button class="btn primary" data-action="claim" data-id="${letter.id}">take it</button>`
+              }</div>`
+            : ''
+          return `<button class="btn" data-action="inbox">← inbox</button>
+            <div class="paper"><span class="small">from ${escapeHtml(letter.from)}</span>
+            <b>${escapeHtml(letter.subject)}</b><p>${escapeHtml(letter.body)}</p></div>${gift}`
+        }
+        if (!mail.length) return '<div class="note">no mail yet. ship something and see who writes.</div>'
+        return mail
+          .map(
+            (l) => `<div class="item letter ${l.read ? 'read' : ''}" data-action="letter" data-id="${l.id}">
+              <i class="new"></i><div><b>${escapeHtml(l.from)}</b><span class="small">${escapeHtml(l.subject)}</span></div>
+              ${l.gift && !l.claimed ? '<span class="gift-tag">gift</span>' : ''}</div>`,
+          )
+          .join('')
       },
     },
 
@@ -230,7 +265,7 @@ export function createUI({ state, actions }) {
           .map((t) => `<button class="btn ${shopTab === t ? 'on' : ''}" data-action="tab" data-id="${t}">${t}</button>`)
           .join('')
         const owned = new Set(save.owned)
-        const items = SHOP.filter((i) => i.kind === shopTab)
+        const items = SHOP.filter((i) => i.kind === shopTab && (!i.mailOnly || owned.has(i.id)))
           .map((item) => {
             let button
             if (!owned.has(item.id)) {
@@ -299,6 +334,7 @@ export function createUI({ state, actions }) {
 
   function open(name) {
     sheet = name
+    letterId = null
     $('sheet-title').textContent = sheets[name].title
     $('sheet').hidden = false
     renderSheet(true)
@@ -306,6 +342,7 @@ export function createUI({ state, actions }) {
 
   function close() {
     sheet = null
+    letterId = null
     $('sheet').hidden = true
   }
 
@@ -342,6 +379,16 @@ export function createUI({ state, actions }) {
       case 'equip':
         actions.equip(id)
         break
+      case 'letter':
+        letterId = Number(id)
+        actions.openLetter(letterId)
+        break
+      case 'inbox':
+        letterId = null
+        break
+      case 'claim':
+        actions.claimGift(Number(id))
+        break
       case 'sort':
         actions.sortUnsorted(decodeURIComponent(id), el.dataset.cat)
         break
@@ -371,7 +418,7 @@ export function createUI({ state, actions }) {
   })
 
   function pulse(sheetName) {
-    const el = document.querySelector(`.buttons [data-sheet="${sheetName}"]`)
+    const el = document.querySelector(`button[data-sheet="${sheetName}"]`)
     if (!el) return
     el.classList.remove('pulse')
     void el.offsetWidth // restart the animation
@@ -386,5 +433,11 @@ export function createUI({ state, actions }) {
     open,
     close,
     pulse,
+    openLetter(id) {
+      open('mail')
+      letterId = id
+      actions.openLetter(id)
+      renderSheet(true)
+    },
   }
 }
