@@ -4,7 +4,7 @@ A desktop companion for coding and learning.
 
 The little pixel guy in it is Zaif. He lives in the corner of my screen and wants to build an operating system. He has the attention span of a goldfish, so he only writes code when I type.
 
-I made this because I've been handing more and more of my coding to AI and could feel myself getting worse at it. So Zaif keeps an eye on what kind of work I'm actually doing: writing code myself, learning (docs, Boot.dev, tutorials), coding with AI, or watching YouTube and calling it research. He reacts to all of it, and at the end of the week I get an honest split of where my time went.
+I made this because I've been handing more and more of my coding to AI and could feel myself getting worse at it. So Zaif keeps an eye on what kind of work I'm actually doing: writing code myself, learning (docs, courses, tutorials), coding with AI, or watching YouTube and calling it research. He reacts to all of it, and at the end of the week I get an honest split of where my time went.
 
 ## running it
 
@@ -21,7 +21,7 @@ npm run install-launcher
 
 That adds it to the app menu and pins it to Plank if you use Plank (other docks: just pin "deskmate" from the menu). Clicking it while it's already open brings Zaif back instead of starting a second one. The icon is drawn from his sprite; `npm run icon` redraws it if you change his look.
 
-You need Linux on X11 and `xinput` (Mint/Cinnamon is fine, that's what I use). On Wayland it still runs, but it can only count keys while its own window is focused, because Wayland won't let apps see keys aimed at other windows. The panel footer says "this window only" when that's happening.
+You need Linux on X11 and `xinput`. On Wayland it still runs, but it can only count keys while its own window is focused, because Wayland won't let apps see keys aimed at other windows. The panel footer says "this window only" when that's happening.
 
 ## how I use it (read this when you forget)
 
@@ -30,7 +30,7 @@ You need Linux on X11 and `xinput` (Mint/Cinnamon is fine, that's what I use). O
 - [ ] pick a project, or keep the one he's on
 
 **the loop**
-1. **learn**, ~25 min. Boot.dev or docs. scrolling counts, so actually read
+1. **learn**, ~25 min. docs or a course. scrolling counts, so actually read
 2. **code**, ~45 min. use the thing you just read. write some of it yourself, no AI
 3. **hit Break.** stand up. when Zaif starts nagging, go back. don't close him
 4. repeat. normal work with Claude is fine, it's tracked
@@ -39,7 +39,7 @@ You need Linux on X11 and `xinput` (Mint/Cinnamon is fine, that's what I use). O
 - Zaif on his phone = you're distracted too. close the tab, don't argue
 - he says his brain is soup = take the break
 - Claude wrote something = read the diff and explain it in one sentence. can't? rewrite the hard part yourself
-- code you want counted as yours goes in Cursor. if Claude is open in *any* Herdr tab, everything in Herdr counts as AI
+- code you want counted as yours goes in the editor, not a terminal with an agent running in it
 
 **end of day** (2 min)
 - [ ] Today → sort the unsorted stuff
@@ -65,15 +65,15 @@ Leave him alone and he gets distracted: phone after 45 seconds, asleep after 4 m
 
 Zaif checks which window you're in every second or so (app name + window title; for browsers that's the page title). That gives one of:
 
-- **coding**: Cursor, other editors, terminals. Full speed.
-- **learning**: Boot.dev, MDN, docs sites, Stack Overflow, GitHub, and YouTube when the title says tutorial/course/etc. Scrolling counts here, so reading the Rust book for an hour counts even if you never type. Learning time levels up **Knowledge**, which makes every project pay more. You can't buy it.
+- **coding**: editors and terminals. Full speed.
+- **learning**: docs sites, MDN, Stack Overflow, GitHub, course sites, and YouTube when the title says tutorial/course/etc. Scrolling counts here, so reading the Rust book for an hour counts even if you never type. Learning time levels up **Knowledge**, which makes every project pay more. You can't buy it.
 - **with AI**: a terminal with Claude Code or Codex running in it, or claude.ai/ChatGPT in the browser. Typing counts at half speed. The monitor turns into a chat.
 - **distracted**: YouTube (the rest of it), Reddit, X, Instagram, Netflix... Zaif pulls out his phone too. He's not judging. He's joining.
 - **other**: everything else. Doesn't move the project, doesn't count against you.
 
-Accepting an AI autocomplete in Cursor is one Tab press for maybe 20 lines, so it's worth basically nothing. That's on purpose. Keys in Cursor ≈ code you actually wrote.
+Accepting an AI autocomplete in your editor is one Tab press for maybe 20 lines, so it's worth basically nothing. That's on purpose. Keys in the editor ≈ code you actually wrote.
 
-Herdr note: Zaif can't see which Herdr tab you're in, so if Claude is running in *any* tab, everything typed in Herdr counts as "with AI". Close enough.
+Terminal tabs: Zaif can't see which tab you're in, so if an agent is running in *any* tab, everything typed in that terminal counts as "with AI". Close enough. Learning site not on the list? It shows up in the unsorted list, tap "learn" once.
 
 Windows Zaif doesn't recognise go into **Today → where does this go?**. One tap each (code / learn / AI / distr. / skip) and he remembers. Do it once a day for a few days and it fits you. Your rules live in `save.json` under `rules` if you want to edit them by hand.
 
@@ -91,7 +91,7 @@ The window is draggable from the top edge of the room or the panel header. `≡`
 
 Kind of, but not really. `src/main/input.js` runs `xinput test-xi2 --root` and counts key presses and mouse/scroll events. The key code gets looked at for exactly one line (to skip modifiers and repeats) and then thrown away. Only counts are saved.
 
-Window titles are read every 1.5s to pick a category and are not saved. The exceptions: for unsorted browser pages it keeps the site part of the title (like "Google Search"), and Boot.dev page titles are stored as a hash just to count them. Nothing goes over the network. Read the files, they're short.
+Window titles are read every 1.5s to pick a category and are not saved. The exceptions: for unsorted browser pages it keeps the site part of the title (like "Google Search"), and titles of learning pages are stored as hashes just to count them. Nothing goes over the network. Read the files, they're short.
 
 Save lives in `~/.config/deskmate/save.json`.
 

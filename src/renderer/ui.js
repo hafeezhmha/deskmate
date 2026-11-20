@@ -139,7 +139,7 @@ export function createUI({ state, actions }) {
     today: {
       title: 'Today',
       html: ({ save, rt }) => {
-        const day = save.days[rt.todayKey] || { time: {}, keys: 0, bootdev: [] }
+        const day = save.days[rt.todayKey] || { time: {}, keys: 0, pages: [] }
         const time = day.time || {}
         const max = Math.max(60, ...TRACKED.map((c) => time[c] || 0))
         const rows = TRACKED.map(
@@ -148,8 +148,8 @@ export function createUI({ state, actions }) {
             <span class="when">${fmtDur(time[c] || 0)}</span></div>`,
         ).join('')
         const extras = `<div class="note">breaks ${fmtDur(time.break || 0)} · ${day.keys.toLocaleString()} keys · ${
-          (day.bootdev || []).length
-        } Boot.dev pages</div>`
+          (day.pages || []).length
+        } learning pages</div>`
 
         // Last 7 days, newest first. Bar length = how long you were at it.
         const days = []

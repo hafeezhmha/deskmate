@@ -38,7 +38,7 @@ export const PROJECTS = [
 export const KEY_VALUE = { code: 1, learn: 1, ai: 0.5, other: 0, distract: 0 }
 
 // Knowledge is earned, not bought: minutes spent actively learning
-// (Boot.dev, docs, tutorials). Each level makes shipped projects pay more,
+// (docs, courses, tutorials). Each level makes shipped projects pay more,
 // because Zaif writes better code when you know more.
 export const KNOWLEDGE = {
   level: (minutes) => Math.floor(Math.sqrt(minutes / 30)), // Lv1 30m, Lv2 2h, Lv3 4.5h, Lv4 8h...

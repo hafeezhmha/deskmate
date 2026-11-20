@@ -20,7 +20,7 @@ import {
   windowLine,
 } from './data.js'
 import { ROOM_W, ROOM_H, WALK_Y, CHAIR, COUCH, drawRoom, drawLighting, drawZaif, drawParticles } from './art.js'
-import { classify, ruleFor, pageTitle } from './categories.js'
+import { classify, ruleFor, pageTitle, isBrowser } from './categories.js'
 import { sfx, setSound } from './sound.js'
 import { createUI } from './ui.js'
 
@@ -52,7 +52,7 @@ function freshSave() {
     knowledgeMinutes: 0, // time spent actively learning, ever
     rules: [], // your own category rules, made by sorting the unsorted list
     unsorted: {}, // windows no rule matched: key -> { app, site, label, seconds }
-    days: {}, // 'YYYY-MM-DD' -> { keys, lines, shipped, time: { code, learn, ... }, bootdev: [] }
+    days: {}, // 'YYYY-MM-DD' -> { keys, lines, shipped, time: { code, learn, ... }, pages: [] }
     settings: { scale: 3, panel: true, onTop: true, sound: true },
   }
 }
@@ -108,7 +108,7 @@ function today() {
   rt.todayKey = dayKey()
   const day = (save.days[rt.todayKey] ??= { keys: 0, lines: 0, shipped: 0 })
   day.time ??= {}
-  day.bootdev ??= []
+  day.pages ??= []
   return day
 }
 
@@ -192,7 +192,7 @@ function onWindow(win) {
   rt.win = win
   rt.category = result.category
   rt.unsorted = result.unsorted || null
-  if (/boot\.dev/i.test(win.title)) countBootDevPage(win)
+  if (rt.category === 'learn' && isBrowser(win.app)) countLearningPage(win)
   if (before !== rt.category && rt.mode === 'desk') react()
 }
 
@@ -203,12 +203,12 @@ function react() {
   else if (rt.unsorted && every('sayUnsorted', 10 * MINUTE)) say(LINES.unsorted, { ms: 8000, onClick: () => ui.open('today') })
 }
 
-// Distinct Boot.dev pages you opened today. Only a hash of the title is kept.
-function countBootDevPage(win) {
+// Distinct learning pages you opened today. Only a hash of the title is kept.
+function countLearningPage(win) {
   let h = 5381
   for (const ch of pageTitle(win)) h = (Math.imul(h, 33) + ch.charCodeAt(0)) >>> 0
   const day = today()
-  if (!day.bootdev.includes(h)) day.bootdev.push(h)
+  if (!day.pages.includes(h)) day.pages.push(h)
 }
 
 // Every frame: add time to whatever you're doing, if you're actually there.
@@ -757,13 +757,13 @@ function fakeWeek() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(Date.now() - i * 86400000).toLocaleDateString('en-CA')
     const r = (a, b) => minutes(Math.round(rand(a, b)))
-    save.days[d] = { keys: 4000 + i * 300, lines: 80, shipped: 1, time: { code: r(40, 150), learn: r(10, 70), ai: r(30, 120), distract: r(5, 60), other: r(10, 40), break: r(10, 40) }, bootdev: [1, 2, 3] }
+    save.days[d] = { keys: 4000 + i * 300, lines: 80, shipped: 1, time: { code: r(40, 150), learn: r(10, 70), ai: r(30, 120), distract: r(5, 60), other: r(10, 40), break: r(10, 40) }, pages: [1, 2, 3] }
   }
   save.knowledgeMinutes = 140
   save.unsorted = {
-    'roam:': { key: 'roam:', app: 'roam', site: '', label: 'roam', seconds: 3900 },
-    'Brave-browser:Google Search': { key: 'Brave-browser:Google Search', app: 'Brave-browser', site: 'Google Search', label: 'Google Search', seconds: 1500 },
-    'Sticky.py:': { key: 'Sticky.py:', app: 'Sticky.py', site: '', label: 'Sticky.py', seconds: 240 },
+    'Slack:': { key: 'Slack:', app: 'Slack', site: '', label: 'Slack', seconds: 3900 },
+    'firefox:Google Search': { key: 'firefox:Google Search', app: 'firefox', site: 'Google Search', label: 'Google Search', seconds: 1500 },
+    'Spotify:': { key: 'Spotify:', app: 'Spotify', site: '', label: 'Spotify', seconds: 240 },
   }
 }
 

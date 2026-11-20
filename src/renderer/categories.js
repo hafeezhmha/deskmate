@@ -1,7 +1,7 @@
 // Decides what kind of work the focused window is.
 //
 //   code      writing code yourself (editor, terminal)
-//   learn     docs, Boot.dev, tutorials. Reading counts, not just typing
+//   learn     docs, courses, tutorials. Reading counts, not just typing
 //   ai        coding with an AI agent / chat
 //   distract  YouTube, Reddit, X...
 //   other     everything else (neutral)
@@ -18,8 +18,7 @@ export const CATEGORIES = {
   other: { name: 'other', color: '#b8a88f' },
 }
 
-// Keep TERMINALS in sync with src/main/window-watch.js.
-const TERMINALS = 'terminal|herdr|kitty|alacritty|ghostty|wezterm|konsole|tilix|xterm|foot|warp'
+const TERMINALS = 'terminal|kitty|alacritty|ghostty|wezterm|konsole|tilix|xterm|foot|warp'
 const EDITORS = 'cursor|^code$|codium|zed|jetbrains|idea|pycharm|webstorm|goland|clion|rustrover|sublime|gedit|kate|neovide|emacs'
 const BROWSERS = 'brave|chrom|firefox|vivaldi|opera|edge|librewolf|zen'
 
@@ -44,14 +43,14 @@ export const DEFAULT_RULES = [
   {
     app: BROWSERS,
     title:
-      'boot\\.dev|mdn|docs|documentation|devdocs|stack overflow|github|python\\.org|rust programming language|rust-lang|go\\.dev|node\\.js|typescript|w3schools|freecodecamp|leetcode|exercism|neetcode|roadmap\\.sh|tutorial|crates\\.io|wikipedia|hacker news',
+      'mdn|docs|documentation|devdocs|stack overflow|github|python\\.org|rust programming language|rust-lang|go\\.dev|node\\.js|typescript|w3schools|freecodecamp|leetcode|exercism|neetcode|roadmap\\.sh|tutorial|crates\\.io|wikipedia|hacker news',
     category: 'learn',
   },
 ]
 
 const BROWSER_NAMES = / [-—] (brave|google chrome|chromium|mozilla firefox|vivaldi|opera)$/i
 
-// Browser titles end with " - Brave"; drop that so rules see the page title.
+// Browser titles end with " - Firefox" etc.; drop that so rules see the page title.
 export function pageTitle(win) {
   return win.title.replace(BROWSER_NAMES, '')
 }
@@ -61,7 +60,7 @@ export function isBrowser(app) {
 }
 
 // The "site" part of a page title, used to group unsorted pages.
-// "Lists | Boot.dev" -> "Boot.dev", "solid js - Google Search" -> "Google Search"
+// "Lists | Python docs" -> "Python docs", "rust traits - Google Search" -> "Google Search"
 export function siteOf(win) {
   const parts = pageTitle(win)
     .split(/ [-|—·:] /)
