@@ -23,6 +23,34 @@ That adds it to the app menu and pins it to Plank if you use Plank (other docks:
 
 You need Linux on X11 and `xinput` (Mint/Cinnamon is fine, that's what I use). On Wayland it still runs, but it can only count keys while its own window is focused, because Wayland won't let apps see keys aimed at other windows. The panel footer says "this window only" when that's happening.
 
+## how I use it (read this when you forget)
+
+**starting**
+- [ ] open Zaif from the dock. that means work mode. don't open him "just to have him open"
+- [ ] pick a project, or keep the one he's on
+
+**the loop**
+1. **learn**, ~25 min. Boot.dev or docs. scrolling counts, so actually read
+2. **code**, ~45 min. use the thing you just read. write some of it yourself, no AI
+3. **hit Break.** stand up. when Zaif starts nagging, go back. don't close him
+4. repeat. normal work with Claude is fine, it's tracked
+
+**rules**
+- Zaif on his phone = you're distracted too. close the tab, don't argue
+- he says his brain is soup = take the break
+- Claude wrote something = read the diff and explain it in one sentence. can't? rewrite the hard part yourself
+- code you want counted as yours goes in Cursor. if Claude is open in *any* Herdr tab, everything in Herdr counts as AI
+
+**end of day** (2 min)
+- [ ] Today → sort the unsorted stuff
+- [ ] look at the split. does it match your day?
+- [ ] close Zaif
+
+**fridays**
+- learning time steady, or did it die on wednesday?
+- coding without AI: keep it above 30%
+- find the distracted day, figure out why, change one thing
+
 ## how it works
 
 - Pick a project in **Projects**. Start with the todo app. Everyone starts with the todo app.
