@@ -27,6 +27,9 @@ const flag = (name) => {
 }
 const snapshotPath = flag('snapshot')
 const scene = flag('scene')
+//   --page=icon         render src/renderer/icon.html instead (used to make the dock icon)
+const page = flag('page')
+const ICON = path.join(__dirname, '..', '..', 'assets', 'icon.png')
 
 // Must match ROOM_W / ROOM_H in src/renderer/art.js.
 const ROOM_W = 208
@@ -70,7 +73,7 @@ let activeWindow = { app: '', title: '' }
 function createWindow() {
   const save = readJson(savePath())
   const settings = { scale: 3, panel: true, onTop: true, ...(save?.settings || {}) }
-  const size = windowSize(settings)
+  const size = page === 'icon' ? { width: 256, height: 256 } : windowSize(settings)
 
   // First run: bottom-right corner of the main screen. Later: where you left it.
   const area = screen.getPrimaryDisplay().workArea
@@ -90,7 +93,8 @@ function createWindow() {
     alwaysOnTop: settings.onTop,
     skipTaskbar: false,
     show: false,
-    title: 'zaif',
+    title: 'Zaif',
+    icon: fs.existsSync(ICON) ? ICON : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -102,7 +106,7 @@ function createWindow() {
   })
   if (settings.onTop) win.setAlwaysOnTop(true, 'floating')
 
-  win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'))
+  win.loadFile(path.join(__dirname, '..', 'renderer', page === 'icon' ? 'icon.html' : 'index.html'))
 
   if (snapshotPath) {
     win.webContents.once('did-finish-load', () => {
@@ -149,7 +153,20 @@ ipcMain.on('zaif:on-top', (_event, on) => win?.setAlwaysOnTop(Boolean(on), 'floa
 ipcMain.on('zaif:minimize', () => win?.minimize())
 ipcMain.on('zaif:quit', () => app.quit())
 
-app.whenReady().then(() => {
+// Only one Zaif at a time. Clicking the dock icon again just brings him back.
+if (!snapshotPath && !app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (!win) return
+    if (win.isMinimized()) win.restore()
+    win.show()
+    win.focus()
+  })
+  app.whenReady().then(start)
+}
+
+function start() {
   // Transparent windows on Linux render black if created too early.
   setTimeout(createWindow, snapshotPath ? 0 : 300)
 
@@ -166,7 +183,7 @@ app.whenReady().then(() => {
       win?.webContents.send('zaif:window', w)
     })
   }
-})
+}
 
 app.on('before-quit', () => {
   stopInput?.()

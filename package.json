@@ -7,7 +7,9 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "snapshot": "electron . --snapshot"
+    "snapshot": "electron . --snapshot",
+    "icon": "electron . --page=icon --snapshot=assets/icon.png --delay=800",
+    "install-launcher": "sh scripts/install-launcher.sh"
   },
   "devDependencies": {
     "electron": "45.2.3"

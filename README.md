@@ -13,6 +13,14 @@ npm install
 npm start
 ```
 
+I don't autostart it. It lives in my dock and I open it when I sit down to actually work:
+
+```sh
+npm run install-launcher
+```
+
+That adds it to the app menu and pins it to Plank if you use Plank (other docks: just pin "deskmate" from the menu). Clicking it while it's already open brings Zaif back instead of starting a second one. The icon is drawn from his sprite; `npm run icon` redraws it if you change his look.
+
 You need Linux on X11 and `xinput` (Mint/Cinnamon is fine, that's what I use). On Wayland it still runs, but it can only count keys while its own window is focused, because Wayland won't let apps see keys aimed at other windows. The panel footer says "this window only" when that's happening.
 
 ## how it works
@@ -72,6 +80,8 @@ src/renderer/art.js    all the pixel art, drawn with rectangles. no image files
 src/renderer/game.js   state, typing, breaks, nagging, the main loop
 src/renderer/ui.js     the side panel
 src/renderer/sound.js  bleeps
+src/renderer/icon.*    draws the dock icon
+scripts/install-launcher.sh  app menu + Plank dock
 ```
 
 Want a new break activity? Add a spot to `SPOTS` in `data.js`, give it a pose in `actPose()` in `game.js`, and draw the furniture in `art.js` if it needs any.
