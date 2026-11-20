@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'"
+    />
+    <title>Zaif</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="stage">
+        <canvas id="room" width="208" height="112"></canvas>
+        <div id="grip" title="drag to move"></div>
+        <button id="toggle-panel" class="icon" title="show / hide panel">≡</button>
+        <div id="bubble" hidden></div>
+      </div>
+
+      <aside id="panel">
+        <header class="drag">
+          <span class="title">Zaif</span>
+          <span class="coins"><i class="coin"></i><span id="coins">0</span></span>
+          <button data-sheet="settings" class="icon" title="settings">⚙</button>
+          <button id="btn-min" class="icon" title="minimize">–</button>
+          <button id="btn-close" class="icon" title="quit">×</button>
+        </header>
+
+        <section class="card">
+          <div class="label">current project</div>
+          <div id="project-name" class="name"></div>
+          <div class="bar"><div id="project-bar"></div></div>
+          <div id="project-meta" class="small"></div>
+          <div class="row" style="margin-top: 7px">
+            <span class="label">energy</span>
+            <span id="status" class="small"></span>
+          </div>
+          <div class="bar energy"><div id="energy-bar"></div></div>
+        </section>
+
+        <section class="card clickable" data-sheet="today" title="today and this week">
+          <div class="row">
+            <span class="label">today</span>
+            <span id="today-total" class="small"></span>
+          </div>
+          <div class="split" id="today-bar"></div>
+          <div id="today-legend" class="legend"></div>
+          <div id="footer-note" class="legend warn"></div>
+        </section>
+
+        <nav class="buttons">
+          <button data-sheet="projects">Projects</button>
+          <button data-sheet="upgrades">Upgrades</button>
+          <button data-sheet="shop">Shop</button>
+          <button data-sheet="break" id="btn-break">Break</button>
+        </nav>
+
+        <div id="sheet" hidden>
+          <header>
+            <span id="sheet-title"></span>
+            <button id="sheet-close" class="icon" title="close">×</button>
+          </header>
+          <div id="sheet-body"></div>
+        </div>
+      </aside>
+    </div>
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
