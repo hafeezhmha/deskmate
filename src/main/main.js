@@ -73,7 +73,7 @@ let activeWindow = { app: '', title: '' }
 function createWindow() {
   const save = readJson(savePath())
   const settings = { scale: 3, panel: true, onTop: true, ...(save?.settings || {}) }
-  const size = page === 'icon' ? { width: 256, height: 256 } : windowSize(settings)
+  const size = page === 'icon' ? { width: 192, height: 192 } : windowSize(settings)
 
   // First run: bottom-right corner of the main screen. Later: where you left it.
   const area = screen.getPrimaryDisplay().workArea

@@ -8,7 +8,12 @@ APPS="$HOME/.local/share/applications"
 ICONS="$HOME/.local/share/icons/hicolor/256x256/apps"
 
 mkdir -p "$APPS" "$ICONS"
-cp "$DIR/assets/icon.png" "$ICONS/deskmate.png"
+# The launcher points at this file directly: some icon themes don't pick up
+# new icons by name until they rescan, and docks then show a generic gear.
+# The name includes a hash so docks reload it when the icon changes.
+ICON="$ICONS/deskmate-$(md5sum "$DIR/assets/icon.png" | cut -c1-8).png"
+rm -f "$ICONS"/deskmate*.png
+cp "$DIR/assets/icon.png" "$ICON"
 
 cat > "$APPS/deskmate.desktop" <<EOF
 [Desktop Entry]
@@ -16,7 +21,7 @@ Type=Application
 Name=deskmate
 Comment=Zaif codes when you type
 Exec=$DIR/node_modules/electron/dist/electron $DIR
-Icon=deskmate
+Icon=$ICON
 Terminal=false
 Categories=Development;Education;
 StartupWMClass=deskmate
