@@ -102,6 +102,23 @@ export const SPOTS = {
 
 export const BREAK_LENGTHS = [5, 10, 15, 25] // minutes
 
+// Weekly goals (Monday to Sunday). Long-term motivation: the stuff you're
+// actually trying to do more of. Every goal only counts up, so once it's
+// ticked it stays ticked. `value` gets the week's summary from game.js:
+//   { shipped, time: { code, learn, ai, ... } (seconds), breakDays, showDays }
+const HOUR = 3600
+export const GOALS = [
+  { id: 'ship', text: 'ship 3 projects', target: 3, unit: 'count', value: (w) => w.shipped },
+  { id: 'learn', text: 'learn for 5 hours', target: 5 * HOUR, unit: 'time', value: (w) => w.time.learn || 0 },
+  { id: 'handmade', text: 'code 3 hours without AI', target: 3 * HOUR, unit: 'time', value: (w) => w.time.code || 0 },
+  { id: 'breaks', text: 'take a real break on 4 days', target: 4, unit: 'days', value: (w) => w.breakDays },
+  { id: 'showup', text: 'show up on 5 days', target: 5, unit: 'days', value: (w) => w.showDays },
+]
+export const GOAL_REWARD = 40 // coins per goal
+export const WEEK_REWARD = 250 // coins for all of them, plus a trophy
+export const SHOW_UP_SECONDS = 30 * 60 // coding + learning + AI time that counts as showing up
+export const BREAK_DAY_SECONDS = 5 * 60
+
 // Zaif's voice: ambitious, easily distracted, means well.
 export const LINES = {
   hello: ['today I build something huge.', 'big plans today.', 'ok. focus. for real this time.'],
@@ -122,6 +139,9 @@ export const LINES = {
   ai: ['pair programming with a robot.', "let the robot type. I'll supervise."],
   distractYou: ['ooh, what are we watching?', 'if you scroll, I scroll.', 'I saw that.'],
   unsorted: ['where are we? (sort it in Today)', 'new place! is this work?'],
+  goal: ['goal done!', 'tick!', 'look at us, being consistent.'],
+  newWeek: ['new week. new goals.', "monday. let's do this. probably."],
+  perfectWeek: ['ALL GOALS. TROPHY.', 'perfect week. framing this.'],
 }
 
 export function windowLine(hour) {

@@ -47,6 +47,7 @@ You need Linux on X11 and `xinput`. On Wayland it still runs, but it can only co
 - [ ] close Zaif
 
 **fridays**
+- week goals: which ones are still empty? two days left, go
 - learning time steady, or did it die on wednesday?
 - coding without AI: keep it above 30%
 - find the distracted day, figure out why, change one thing
@@ -58,6 +59,18 @@ You need Linux on X11 and `xinput`. On Wayland it still runs, but it can only co
 - Finish a project and you get coins. He immediately starts on v2, because of course he does.
 - Spend the coins on upgrades (type faster, unlock bigger projects) or stuff for the room.
 - Energy drops while you type. Under 35% he asks for a break (click the yellow bubble). At 0 he writes at half speed, same as me.
+
+### week goals
+
+Five goals, reset every monday. They tick themselves, you just do the work:
+
+- ship 3 projects
+- learn for 5 hours
+- code 3 hours without AI
+- take a real break on 4 days
+- show up on 5 days (30+ min of actual work)
+
+Each one is +40 coins. All five gets +250 and a trophy on Zaif's wall shelf. The pips in the today card show where you're at. Goals only count up, so nothing unticks itself on thursday because you had a bad day. Want different targets? They're in `GOALS` in `data.js`.
 
 Leave him alone and he gets distracted: phone after 45 seconds, asleep after 4 minutes. Click him and he says something.
 
@@ -122,7 +135,7 @@ I got tired of launching the app to check a sprite, so there's a snapshot mode:
 DESKMATE_DATA_DIR=/tmp/deskmate-test npx electron . --snapshot=out.png --scene=work+all+night
 ```
 
-Join scene parts with `+`: `work` `ai` `reading` `doomscroll` `phone` `asleep` `tired` `tap` `nag` `cheer` `project` `rich` `all` `week` (fake history) `day` `dusk` `night` `rest-<spot>` (like `rest-couch`) `sheet-<name>` (like `sheet-today`) `scrolldown` `outfit-<id>` `wall-<id>`. `--crop=x,y,w,h` zooms in. `DESKMATE_DATA_DIR` keeps it away from your real save.
+Join scene parts with `+`: `work` `ai` `reading` `doomscroll` `phone` `asleep` `tired` `tap` `nag` `cheer` `project` `rich` `all` `week` (fake history) `trophies` `perfect` (finishes the week's goals) `day` `dusk` `night` `rest-<spot>` (like `rest-couch`) `sheet-<name>` (like `sheet-goals`) `scrolldown` `outfit-<id>` `wall-<id>`. `--crop=x,y,w,h` zooms in. `DESKMATE_DATA_DIR` keeps it away from your real save.
 
 ## next
 

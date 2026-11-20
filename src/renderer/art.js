@@ -121,6 +121,24 @@ function drawClock(ctx, view) {
   rect(ctx, cx, cy, 1, 1, INK)
 }
 
+// One trophy per perfect week, on a little wall shelf. Fits six.
+function drawTrophyShelf(ctx, count) {
+  box(ctx, 103, 46, 36, 3, '#a0683f')
+  rect(ctx, 106, 49, 2, 3, '#7a4d2e')
+  rect(ctx, 134, 49, 2, 3, '#7a4d2e')
+  for (let i = 0; i < Math.min(count, 6); i++) {
+    const x = 106 + i * 5
+    rect(ctx, x - 1, 38, 6, 1, INK)
+    rect(ctx, x, 39, 4, 2, '#f2b134')
+    rect(ctx, x - 1, 39, 1, 2, INK)
+    rect(ctx, x + 4, 39, 1, 2, INK)
+    rect(ctx, x + 1, 41, 2, 2, '#d99a22')
+    rect(ctx, x, 43, 4, 1, '#d99a22')
+    rect(ctx, x, 44, 4, 2, INK)
+    rect(ctx, x + 1, 39, 1, 1, '#fff2c4') // shine
+  }
+}
+
 function drawPoster(ctx) {
   box(ctx, 28, 15, 14, 20, '#f6efe2')
   rect(ctx, 30, 17, 10, 14, '#5b7bd5')
@@ -367,6 +385,7 @@ export function drawRoom(ctx, view) {
 
   drawWindow(ctx, view)
   drawClock(ctx, view)
+  if (view.trophies) drawTrophyShelf(ctx, view.trophies)
   if (view.owned.has('poster')) drawPoster(ctx)
   if (view.owned.has('lights')) drawFairyLights(ctx, view, false)
   if (view.owned.has('rug')) drawRug(ctx)

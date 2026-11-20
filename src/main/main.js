@@ -35,7 +35,7 @@ const ICON = path.join(__dirname, '..', '..', 'assets', 'icon.png')
 const ROOM_W = 208
 const ROOM_H = 112
 const PANEL_W = 236
-const MIN_H = 372
+const MIN_H = 398
 
 const dataDir = () => app.getPath('userData')
 const savePath = () => path.join(dataDir(), 'save.json')

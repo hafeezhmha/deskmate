@@ -13,6 +13,11 @@ import {
   KNOWLEDGE,
   PROJECTS,
   UPGRADES,
+  GOALS,
+  GOAL_REWARD,
+  WEEK_REWARD,
+  SHOW_UP_SECONDS,
+  BREAK_DAY_SECONDS,
   SHOP,
   STARTER_OWNED,
   SPOTS,
@@ -50,6 +55,9 @@ function freshSave() {
     outfit: 'outfit-classic',
     wallpaper: 'wall-cream',
     knowledgeMinutes: 0, // time spent actively learning, ever
+    goals: {}, // monday 'YYYY-MM-DD' -> { claimed: [goal ids], perfect }
+    trophies: 0, // perfect weeks
+    lastWeek: null, // the week Zaif last saw, to notice a new one
     rules: [], // your own category rules, made by sorting the unsorted list
     unsorted: {}, // windows no rule matched: key -> { app, site, label, seconds }
     days: {}, // 'YYYY-MM-DD' -> { keys, lines, shipped, time: { code, learn, ... }, pages: [] }
@@ -431,6 +439,60 @@ function runPlan(dt) {
   }
 }
 
+// ------------------------------------------------------------------ weekly goals
+
+// Monday of the week `date` is in, as 'YYYY-MM-DD'.
+function weekKeyFor(date) {
+  const d = new Date(date)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return d.toLocaleDateString('en-CA')
+}
+
+// Add up a week's days for the goals.
+function weekSummary(weekKey) {
+  const start = new Date(`${weekKey}T12:00:00`)
+  const week = { shipped: 0, time: {}, breakDays: 0, showDays: 0 }
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const day = save.days[d.toLocaleDateString('en-CA')]
+    if (!day) continue
+    const t = day.time || {}
+    week.shipped += day.shipped || 0
+    for (const [cat, secs] of Object.entries(t)) week.time[cat] = (week.time[cat] || 0) + secs
+    if ((t.break || 0) >= BREAK_DAY_SECONDS) week.breakDays++
+    if ((t.code || 0) + (t.learn || 0) + (t.ai || 0) >= SHOW_UP_SECONDS) week.showDays++
+  }
+  return week
+}
+
+function checkGoals() {
+  const key = weekKeyFor(new Date())
+  if (save.lastWeek && save.lastWeek !== key) say(LINES.newWeek, { ms: 6000 })
+  save.lastWeek = key
+  const state = (save.goals[key] ??= { claimed: [], perfect: false })
+  const week = weekSummary(key)
+  for (const goal of GOALS) {
+    if (state.claimed.includes(goal.id) || goal.value(week) < goal.target) continue
+    state.claimed.push(goal.id)
+    save.coins += GOAL_REWARD
+    say(`${pick(LINES.goal)} ${goal.text}. +${GOAL_REWARD}`, { ms: 5000 })
+    sfx.coin()
+  }
+  if (!state.perfect && state.claimed.length === GOALS.length) {
+    state.perfect = true
+    save.trophies++
+    save.coins += WEEK_REWARD
+    say(`${pick(LINES.perfectWeek)} +${WEEK_REWARD}`, { ms: 7000 })
+    sfx.ship()
+    for (let i = 0; i < 30; i++) {
+      particle({ x: rand(100, 140), y: rand(30, 50), vx: rand(-14, 14), vy: rand(-20, 0), gravity: 30, life: rand(1.5, 2.5), color: pick(['#f2b134', '#fff2c4', '#ff8fa3']) })
+    }
+  }
+  // Keep the last ~12 weeks of goal state.
+  for (const old of Object.keys(save.goals).sort().slice(0, -12)) delete save.goals[old]
+}
+
 // ------------------------------------------------------------------ update
 
 function hour() {
@@ -544,6 +606,7 @@ function update(dt) {
   rt.particles = rt.particles.filter((p) => p.life > 0 && p.y < ROOM_H)
 
   trackTime(dt)
+  if (every('goals', 5 * SECOND)) checkGoals()
   if (rt.fakeTyping && Math.random() < 0.35) onInput({ keys: 1 })
   if (rt.fakeReading && Math.random() < 0.3) onInput({ pointer: 4 })
 }
@@ -565,6 +628,7 @@ function draw() {
     coffeeOn: rt.coffeeOn,
     arcadeOn: rt.arcadeOn,
     monitor: monitorMode(monitorOn),
+    trophies: save.trophies,
     codeLine: rt.codeLine,
     docLine: rt.docLine,
     typedInLine: rt.typedInLine,
@@ -707,7 +771,13 @@ const actions = {
   },
 }
 
-const ui = createUI({ state: () => ({ save, rt, knowledgeLevel: knowledgeLevel(), payFor }), actions })
+const ui = createUI({
+  state: () => {
+    const weekKey = weekKeyFor(new Date())
+    return { save, rt, knowledgeLevel: knowledgeLevel(), payFor, weekKey, week: weekSummary(weekKey), lastWeekKey: weekKeyFor(Date.now() - 7 * 86400000) }
+  },
+  actions,
+})
 
 // ------------------------------------------------------------------ debug scenes
 // `npm run snapshot -- --scene=work+all+night` renders a scene to a PNG.
@@ -727,6 +797,11 @@ function debugScene(scene) {
     else if (part === 'reading') Object.assign(rt, { fakeReading: true, category: 'learn', lastKeyAt: rt.now - 60 * SECOND })
     else if (part === 'doomscroll') Object.assign(rt, { category: 'distract' })
     else if (part === 'week') fakeWeek()
+    else if (part === 'trophies') save.trophies = 3
+    else if (part === 'perfect') {
+      fakeWeek()
+      today().time.learn = 6 * 3600 // enough to finish every goal
+    }
     else if (part === 'phone') Object.assign(rt, { lastKeyAt: rt.now - 60 * SECOND, lastWorkAt: rt.now - 60 * SECOND })
     else if (part === 'asleep') Object.assign(rt, { lastKeyAt: rt.now - 300 * SECOND, lastWorkAt: rt.now - 300 * SECOND, lastInputAt: rt.now - 300 * SECOND })
     else if (part === 'tired') save.energy = 20

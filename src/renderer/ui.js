@@ -2,7 +2,7 @@
 // break, settings). It reads game state and calls back into game.js through
 // `actions`; it never changes state itself.
 
-import { PROJECTS, TIERS, UPGRADES, SHOP, BREAK_LENGTHS, KNOWLEDGE } from './data.js'
+import { PROJECTS, TIERS, UPGRADES, SHOP, BREAK_LENGTHS, KNOWLEDGE, GOALS, GOAL_REWARD, WEEK_REWARD } from './data.js'
 import { CATEGORIES } from './categories.js'
 
 const $ = (id) => document.getElementById(id)
@@ -48,7 +48,7 @@ export function createUI({ state, actions }) {
   // ---------------------------------------------------------- panel
 
   function renderPanel() {
-    const { save, rt, payFor } = state()
+    const { save, rt, payFor, weekKey } = state()
     $('coins').textContent = Math.floor(save.coins).toLocaleString()
 
     const project = PROJECTS.find((p) => p.id === save.project)
@@ -78,6 +78,11 @@ export function createUI({ state, actions }) {
       .join('')
     const legendHtml = legend || '<span>nothing yet. go do something.</span>'
     if ($('today-legend').innerHTML !== legendHtml) $('today-legend').innerHTML = legendHtml
+
+    const claimed = save.goals[weekKey]?.claimed || []
+    const pips = GOALS.map((g) => `<i class="pip ${claimed.includes(g.id) ? 'done' : ''}"></i>`).join('')
+    if ($('goal-pips').innerHTML !== pips) $('goal-pips').innerHTML = pips
+    $('goal-count').textContent = `${claimed.length}/${GOALS.length}`
 
     const unsorted = Object.keys(save.unsorted).length
     $('footer-note').textContent =
@@ -133,6 +138,32 @@ export function createUI({ state, actions }) {
           `<div class="item locked"><div><b>Quality</b>
             <span class="small">comes with code reviews (v2): Zaif only gets better code when you understand yours.</span></div></div>`
         )
+      },
+    },
+
+    goals: {
+      title: 'Week goals',
+      html: ({ save, week, weekKey, lastWeekKey }) => {
+        const claimed = save.goals[weekKey]?.claimed || []
+        const dayOfWeek = (new Date().getDay() + 6) % 7
+        const left = 6 - dayOfWeek
+        const fmt = (goal, v) => (goal.unit === 'time' ? fmtDur(v) : goal.unit === 'days' ? `${v} days` : `${v}`)
+        const rows = GOALS.map((goal) => {
+          const value = goal.value(week)
+          const done = claimed.includes(goal.id)
+          const pct = Math.min(100, (value / goal.target) * 100)
+          return `<div class="item ${done ? 'done' : ''}"><i class="check ${done ? 'done' : ''}"></i><div>
+            <b>${goal.text}</b>
+            <span class="small">${fmt(goal, Math.min(value, goal.target))} / ${fmt(goal, goal.target)} · ${coin(GOAL_REWARD)}</span>
+            ${done ? '' : `<div class="bar"><div style="width:${pct}%"></div></div>`}
+          </div></div>`
+        }).join('')
+        const last = save.goals[lastWeekKey]
+        const lastLine = last ? `last week: ${last.claimed.length}/${GOALS.length}${last.perfect ? ' (trophy!)' : ''}. ` : ''
+        const trophies = save.trophies ? `${save.trophies} ${save.trophies === 1 ? 'trophy' : 'trophies'} on the shelf.` : 'no trophies yet.'
+        return `<div class="note">${left === 0 ? 'last day of the week.' : `${left} ${left === 1 ? 'day' : 'days'} left after today.`} resets monday.</div>
+          ${rows}
+          <div class="note">all ${GOALS.length}: ${coin(WEEK_REWARD)} and a trophy for Zaif's shelf. ${lastLine}${trophies}</div>`
       },
     },
 
@@ -281,7 +312,10 @@ export function createUI({ state, actions }) {
   // ---------------------------------------------------------- events
 
   document.querySelectorAll('[data-sheet]').forEach((el) => {
-    el.addEventListener('click', () => open(el.dataset.sheet))
+    el.addEventListener('click', (event) => {
+      event.stopPropagation() // the goals row sits inside the today card
+      open(el.dataset.sheet)
+    })
   })
   $('sheet-close').addEventListener('click', close)
   $('btn-min').addEventListener('click', () => window.zaif.minimize())
