@@ -148,7 +148,11 @@ Join scene parts with `+`: `work` `ai` `reading` `doomscroll` `phone` `asleep` `
 ## next
 
 - **code reviews, by mail.** Hooks log every edit the AI agent makes. Some of them come back as letters ("a user opened an issue: what does this function do?") with the real diff attached. I explain it, an LLM grades me, and that's the only way to raise Zaif's Quality stat.
-- **git credit.** Extra coins for commits I wrote myself (commits minus whatever Claude wrote).
+- **git credit.** Extra coins for commits I wrote myself (commits minus whatever the AI wrote).
 - **quizzes on stuff I read.** Learning time is a proxy. A two-question check on a docs page I spent 20 minutes on would be the real thing.
+- **a real reward screen.** Shipping is confetti and a letter right now. I want a small recap after: how long it took, how many lines, coins, what came in the mail. Work, then reward, then back to work.
+- **new places, not just wallpaper.** Zaif should be able to move out. A café, a library, a rooftop at night. Unlocked by shipping bigger things or by perfect weeks.
+- **goals I pick.** The five weekly goals are hardcoded. Let me choose them, or at least change the numbers, in the app.
+- **a longer list.** Week goals are for the week. Something for months too: first tier 3 project, 50 hours of learning, 10 trophies.
 
 MIT licensed. Do whatever.
